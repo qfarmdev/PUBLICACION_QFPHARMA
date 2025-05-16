@@ -1,0 +1,532 @@
+
+--VALIDA ESTADO DE CAJA
+
+--exec SISLAB.usuariocaja 2078,154
+
+use BACKUPQF1908
+go
+alter proc SISLAB.usuariocaja
+@idempleado int,
+@idsucursal int
+as
+begin
+
+declare
+@rpt int,
+@sucursal varchar(30),
+@mensaje varchar(max),
+@data varchar(max)
+
+declare @mx varchar(20)
+declare @mx2 varchar(20)
+--se valida si tiene caja abierta de la sucursal y de hoy
+if exists(
+select * from Ventas.AperturarCaja ac 
+inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal and CAST(GETDATE() as date)=CAST(fechaapertura as date))
+begin
+	set @rpt=0
+	set @data=(select ac.idaperturacaja from Ventas.AperturarCaja ac 
+inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal and CAST(GETDATE() as date)=CAST(fechaapertura as date) )
+end
+--se valida si tiene caja abierta de la sucursal con fecha diferente a hoy
+else if exists(select * from Ventas.AperturarCaja ac 
+inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal and CAST(GETDATE() as date)!=CAST(fechaapertura as date))
+begin
+	set @rpt=1
+	select @mx=CAST( fechaapertura as date),@mx2=sc.descripcion from Ventas.AperturarCaja ac	
+	inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+	inner join SUCURSAL sc on sc.suc_codigo=cs.idsucursal
+	where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal and CAST(GETDATE() as date)!=CAST(fechaapertura as date)
+	
+	set @data=(select ac.idaperturacaja from Ventas.AperturarCaja ac 
+	inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+	where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal )
+
+	set @mensaje=(concat('Tiene una caja abierta del dia ',@mx));
+
+
+end
+else  if exists(select * from Ventas.AperturarCaja ac 
+inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal!=@idsucursal )
+begin
+	set @rpt=2
+	select @mx2=sc.descripcion from Ventas.AperturarCaja ac	
+	inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+	inner join SUCURSAL sc on sc.suc_codigo=cs.idsucursal
+	where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal
+
+	set @data=(select ac.idaperturacaja from Ventas.AperturarCaja ac 
+	inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+	where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA'  )
+	
+	set @mensaje=(CONCAT('Tiene una caja abierta en el local de ',@mx2))
+
+
+end 
+--se valida si tiene caja abierta de otra sucursal
+--else if exists(select * from Ventas.AperturarCaja ac 
+--inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+--where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal!=@idsucursal )
+--begin
+--	set @rpt=3
+--	select @mx2=sc.descripcion from Ventas.AperturarCaja ac	
+--	inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+--	inner join SUCURSAL sc on sc.suc_codigo=cs.idsucursal
+--	where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA' and cs.idsucursal=@idsucursal
+	
+--	set @mensaje=(CONCAT('Tiene una caja abierta en el local de ',@mx2))
+
+
+--end 
+--se valida no tiene caja abierta
+else if not exists(select * from Ventas.AperturarCaja ac 
+inner join CajaSucursal cs on ac.idcajasucursal=cs.idcajasucursal
+where ac.usuarioapertura=@idempleado and ac.estado='APERTURADA')
+begin
+	set @rpt=3
+	set @mensaje=('No cuenta con una caja abierta')
+
+end
+select @rpt as Estado,@mensaje as Mensaje,@data as 'Data'
+end
+go
+--exec SISLAB.listarcajasestados 100
+
+alter proc SISLAB.listarcajasestados
+@idsucursal int
+as
+begin
+declare @data varchar(max)
+--set @data=(
+select idcajasucursal as idcajasucursal,concat('CAJA ',idcaja) as Caja, aperturado as Estado from CajaSucursal where idsucursal=@idsucursal --for json path)
+
+--select  @data as 'Data'
+end
+
+go
+--select * from Ventas.AperturarCaja where usuarioapertura=0
+
+
+alter proc sislab.aperturarcaja
+@json varchar(max),
+@respuesta varchar(20) out
+as begin
+begin transaction
+begin try
+declare @aperturacaja nvarchar(max)
+select @aperturacaja=caja from openjson(@json) with (caja nvarchar(max) as json)
+
+insert into Ventas.AperturarCaja 
+(usuariocrea,usuariomodifica,fechacreacion,fechaedicion,usuarioapertura,fechaapertura,estado,montoinicial,idcajasucursal) 
+select idusuario,idusuario,GETDATE(),GETDATE(),idusuario,GETDATE(),'APERTURADA',montoinicial,idcajasucursal
+from openjson (@aperturacaja)with(
+[idusuario][int],
+[montoinicial][decimal](18,5),
+[idcajasucursal][int]
+)
+
+set @respuesta=concat('CAJA APERTURADA','|',SCOPE_IDENTITY())
+
+commit transaction
+end try
+begin catch
+rollback transaction
+	DECLARE @ErrorMessage   NVARCHAR(4000) = ERROR_MESSAGE(),
+            @ErrorState     INT = ERROR_STATE(),
+            @ErrorSeverity  INT = ERROR_SEVERITY();
+	RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+	set @respuesta='ERROR AL ABRIR CAJA'
+return;
+end catch
+end
+
+go
+
+
+alter proc sislab.cerrarcaja
+@json varchar(max),
+@respuesta varchar(20) out
+as begin
+begin transaction
+begin try
+declare @cerrarcaja nvarchar(max)
+declare @observacion nvarchar(max)
+select @cerrarcaja=caja from openjson(@json) with (caja nvarchar(max) as json)
+select @observacion=observacion from openjson(@json) with(observacion nvarchar(max) as json)
+insert into Ventas.CerrarCaja
+(usuariocrea,usuariomodifica,fechacreacion,fechaedicion,idaperturarcaja,estado,montosistema,montousuario,fecha,caja,moneda,tipopago,cambiomoneda,numventas) 
+select idusuario,idusuario,GETDATE(),GETDATE(),idaperturacaja,'HABILITADO',monto,monto,GETDATE(),caja,moneda,tipopago,cambiomoneda,numventas
+from openjson (@cerrarcaja)with(
+[idaperturacaja][int],
+[idusuario][int],
+[caja][varchar](25),
+[moneda][varchar](10),
+[cambiomoneda][int],
+[tipopago][varchar](25),
+[monto][decimal](18,5),
+[numventas][int],
+[observacion][varchar](max)
+)
+
+update Ventas.AperturarCaja 
+set observaciones=tapertura.observacion ,estado='CERRADA'
+from(
+select idaperturacaja,observacion from 
+openjson(@observacion)
+with (
+[idaperturacaja][int],
+[observacion][varchar](max)
+)) tapertura
+where Ventas.AperturarCaja.idaperturacaja=tapertura.idaperturacaja
+set @respuesta='SE REALIZO EL CIERRE'
+
+commit transaction
+end try
+begin catch
+rollback transaction
+	DECLARE @ErrorMessage   NVARCHAR(4000) = ERROR_MESSAGE(),
+            @ErrorState     INT = ERROR_STATE(),
+            @ErrorSeverity  INT = ERROR_SEVERITY();
+	RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+	set @respuesta='ERROR AL CERRAR CAJA'
+return;
+end catch
+end
+go
+--update Ventas.AperturarCaja set usuarioapertura=0 where usuarioapertura=2078
+--exec sislab.listas_pedido 0
+alter proc sislab.listas_pedido
+@idempleado int,
+@idempresa int,
+@idsucursal int
+as
+begin
+
+declare --@list_registros nvarchar(max),
+@list_canalventas nvarchar(max),
+@list_sucursal nvarchar(max),
+@list_tppaciente nvarchar(max),
+@list_diagn nvarchar(max),
+@list_atencion nvarchar(max),
+@list_tipoventa nvarchar(max),
+@list_docmedico nvarchar(max),
+@lista_tdocs nvarchar(max),
+@lista_departamento nvarchar(max),
+@lista_provincia nvarchar(max),
+@lista_distrito nvarchar(max),
+@lista_precios nvarchar(max),
+@lista_laboratorios nvarchar(max)
+
+set @list_canalventas=( select cast(ec.idcanalventa as varchar) as codigo,cv.descripcion from EmpleadoCanalVenta ec inner join Ventas.CanalVenta cv 
+on cv.idcanalventa=ec.idcanalventa where estado='HABILITADO' and ec.idempleado=@idempleado for json path)
+set @list_sucursal=(select cast(suc_codigo as varchar) as codigo,descripcion as descripcion,tipoSucursal from SUCURSAL where estado='HABILITADO' and idempresa=@idempresa for json path)
+set @list_tppaciente=(select cast(tipopaciente_codigo as varchar) as codigo,descripcion from TIPOPACIENTE where estado='HABILITADO' for json path)
+set @list_diagn=(select cast(diagnostico_codigo as varchar) as codigo,descripcion from DIAGNOSTICO where estado='HABILITADO' for json path)
+set @list_atencion=(select cast(IdLineaAtencion as varchar) as codigo,Nombre as descripcion from LineaAtencion where Estado='HAB' for json path)
+set @list_tipoventa=(select cast(idtipoventa as varchar) as codigo,descripcion from tipoventa for json path)
+set @list_docmedico=(select cast(idcolegio as varchar) as codigo,abreviatura as descripcion from Colegio for	json path)
+set @lista_tdocs=(select cast(TDC_codigo as varchar)as codigo,descripcion from TIPODOCUMENTOCLIENTE where estado='HABILITADO' for json path)
+set @lista_departamento=(select cast(dep_codigo as varchar) codigo,descripcion from DEPARTAMENTO where estado='HABILITADO' and descripcion!='NINGUNO' for json path)
+set @lista_provincia=(select cast(dep_codigo as varchar) as dep_codigo,cast(pro_codigo as varchar) codigo,descripcion from PROVINCIA where estado='HABILITADO' AND descripcion!='NINGUNO' for json path)
+SET @lista_distrito=(select  cast(pro_codigo as varchar) as pro_codigo,cast(dis_codigo as varchar) codigo,descripcion from DISTRITO where estado='HABILITADO' and descripcion!='NINGUNO' for json path)
+set @lista_precios=(select cast(cl.idlistaprecio as varchar) as codigo,cl.descripcion descripcion from Comercial.ListaPreciosSucursal clp inner join Comercial.ListaPrecios cl
+on clp.idlista=cl.idlistaprecio where cl.estado='HABILITADO' and clp.idsucursal=@idsucursal and tipo='sucursal' for json path)
+set @lista_laboratorios=(select cast(idlaboratorio as varchar) codigo,descripcion from Almacen.Laboratorio for json path)
+
+--agregar la lista de precios de la sucursal para jalar los productos
+select @list_canalventas 'lista_canal',
+@list_sucursal 'lista_sucursal',
+@list_tppaciente 'lista_tpaciente',
+@list_diagn 'lista_diagn',
+@list_atencion 'lista_atencion',
+@list_tipoventa 'lista_tipov',
+@list_docmedico 'lista_docmedico', 
+@lista_tdocs 'lista_tdocs',
+@lista_departamento 'lista_departamento',
+@lista_provincia 'lista_provincia',
+@lista_distrito 'lista_distrito',
+@lista_precios 'lista_precios',
+@lista_laboratorios 'lista_laboratorio'
+end
+
+go
+
+
+--exec sislab.buscar_cliente_paciente 2,'73110786'
+
+ ALTER proc sislab.buscar_cliente_paciente
+@idtipo int,
+@nrodocumento varchar(11)
+as
+begin
+
+if (@idtipo=1)
+begin
+	select cliTercero_codigo as codigo,IIF(iddocumento=1,CONCAT(descripcion,' ',apepaterno,' ',apematerno),descripcion) as nombre from CLIENTE_TERCERO where nroDocumento=@nrodocumento and isnull(estado,'HABILITADO')='HABILITADO'
+end else if(@idtipo=2)
+begin
+select cli_codigo as codigo,CONCAT(nombres,' ',apePaterno,' ',' ',apeMaterno) as nombre from PACIENTE where numdocumento=@nrodocumento and isnull(estado,'HABILITADO')='HABILITADO'
+end
+
+end
+go
+--sislab.Listar_cliente_paciente 1,'luis'
+alter proc sislab.Listar_cliente_paciente
+@idtipo int,
+@filtro varchar(max)
+as
+begin
+
+if (@idtipo=1)
+begin
+	SELECT TOP(20) 
+	ct.cliTercero_codigo as codigo,
+    tc.descripcion AS tipodoc,
+    ct.nroDocumento AS numdocumento,
+    CASE 
+        WHEN iddocumento = 1 
+        THEN CONCAT(ct.descripcion, ' ', apepaterno, ' ', apematerno) 
+        ELSE ct.descripcion 
+    END AS nombre
+FROM CLIENTE_TERCERO ct
+LEFT JOIN TIPODOCUMENTOCLIENTE tc ON TDC_codigo = iddocumento
+WHERE ISNULL(ct.estado, 'HABILITADO') = 'HABILITADO'
+AND (
+    (iddocumento = 1 AND CONCAT(ct.descripcion, ' ', apepaterno, ' ', apematerno) LIKE '%' + @filtro + '%')
+    OR (iddocumento <> 1 AND tc.descripcion LIKE '%' + @filtro + '%')
+    OR ct.nroDocumento LIKE '%' + @filtro + '%'
+)
+ORDER BY cliTercero_codigo DESC;
+end else if(@idtipo=2)
+begin
+SELECT TOP(20) 
+	p.cli_codigo as codigo,
+    tc.descripcion AS tipodoc,
+    p.numdocumento AS numdocumento,
+    CONCAT(p.nombres, ' ', p.apePaterno, ' ', p.apeMaterno) AS nombre
+FROM PACIENTE p
+LEFT JOIN TIPODOCUMENTOCLIENTE tc ON p.TDC_codigo = tc.TDC_codigo
+WHERE ISNULL(p.estado, 'HABILITADO') = 'HABILITADO'
+AND (
+    tc.descripcion LIKE '%' + @filtro + '%'
+    OR p.numdocumento LIKE '%' + @filtro + '%'
+)
+ORDER BY p.cli_codigo DESC;
+end
+
+end
+
+go
+
+
+alter proc sislab.buscar_personaxtipo --2,207509
+@idtipo int,
+@idcliente int
+as
+begin
+
+if(@idtipo=1)
+begin
+	SELECT 
+            iddocumento,
+			cliTercero_codigo codigo,
+            nroDocumento AS numdocumento,
+            descripcion AS nombre,
+            ISNULL(apepaterno, '') AS apepaterno,
+            ISNULL(apematerno, '') AS apematerno,
+            CAST(fechanacimiento AS DATE) AS fechanacimiento,
+            ISNULL(email, '') AS email,
+            ISNULL(telefono, '') AS telefono,
+            ISNULL(celular, '') AS celular,
+            dep_codigo AS iddepartamento,
+            idprovincia,
+            iddistrito,
+            isnull(direccion,'')direccion,
+            isnull(direccionentrega,'')direccion_entrega
+        FROM 
+            CLIENTE_TERCERO 
+        WHERE 
+            cliTercero_codigo = @idcliente;
+end else if(@idtipo=2) 
+begin 
+	SELECT 
+            iddocumento,
+			cli_codigo codigo,
+            numdocumento,
+            nombres,
+            ISNULL(apepaterno, '') AS apepaterno,
+            ISNULL(apematerno, '') AS apematerno,
+            sexo,
+            CAST(fechanacimiento AS DATE) AS fechanacimiento,
+			email,
+            telefono,
+            celular,
+            dep_codigo AS iddepartamento,
+            pro_codigo AS idprovincia,
+            dis_codigo AS iddistrito,
+            isnull(direccion,'')direccion,
+            isnull(referencia,'')referencia,
+            pacientecannabis
+        FROM 
+            PACIENTE
+        WHERE 
+            cli_codigo = @idcliente;
+end
+
+end
+
+go
+select * from Comercial.ListaPreciosSucursal where idsucursal=154
+
+alter PROCEDURE sislab.listarproductosprecios
+    @PRODUCTO VARCHAR(100),
+    @SUCURSAL INT,
+    @IDLISTA INT,
+    @LABORATORIO INT = NULL,
+    @idtipopedido INT = NULL,
+    @idcanalventa VARCHAR(100) = NULL
+AS
+BEGIN
+    -- Usamos TOP 10 para limitar la cantidad de registros y optimizar
+    WITH CTEtest AS (
+        SELECT TOP 10
+            pp.idprecioproducto,
+            pp.idproducto,
+            P.codigoproducto,
+            P.codigobarra,
+            p.nombre,
+            p.idtipoproducto,
+            p.nombreabreviado,
+            P.idlaboratorio,
+            p.idpresentacion,
+            Pp.precio,
+            pp.precioxfraccion,
+            p.multiplo,
+            p.cod_intuictive
+        FROM Comercial.PreciosProducto pp
+        INNER JOIN Almacen.Producto p WITH (NOLOCK) ON p.idproducto = pp.idproducto
+        WHERE pp.estado = 'HABILITADO'
+        AND p.estado = 'HABILITADO'
+        AND pp.idlistaprecio = @IDLISTA
+        AND (@LABORATORIO IS NULL OR p.idlaboratorio = @LABORATORIO)
+        AND ISNULL(p.mostrarventas, 0) = 1
+        AND (P.codigobarra LIKE '%' + @PRODUCTO + '%' 
+            OR P.codigoproducto LIKE '%' + @PRODUCTO + '%' 
+            OR P.nombre LIKE '%' + @PRODUCTO + '%')
+        AND p.idtipoproducto != 'PK'
+        
+        UNION ALL
+
+        SELECT TOP 10
+            pp.idprecioproducto,
+            pp.idproducto,
+            P.codigoproducto,
+            P.codigobarra,
+            p.nombre,
+            p.idtipoproducto,
+            p.nombreabreviado,
+            P.idlaboratorio,
+            p.idpresentacion,
+            Pp.precio,
+            pp.precioxfraccion,
+            p.multiplo,
+            p.cod_intuictive
+        FROM Comercial.PreciosProducto pp
+        INNER JOIN Almacen.Producto p ON p.idproducto = pp.idproducto
+        INNER JOIN Comercial.PromocionPackSucursal ps ON ps.idpromopack = pp.idproducto
+            AND ps.suc_codigo = @SUCURSAL
+            AND GETDATE() BETWEEN ps.fechainicio AND ps.fechatermino
+        INNER JOIN Comercial.PromocionPackCanalVenta pcv ON pcv.idpromopack = ps.idpromopack
+        WHERE pp.estado = 'HABILITADO'
+        AND p.estado = 'HABILITADO'
+        AND pcv.idcanalventa = ISNULL(@idcanalventa, '')
+        AND pp.idlistaprecio = @IDLISTA
+        AND (@LABORATORIO IS NULL OR p.idlaboratorio = @LABORATORIO)
+        AND ISNULL(p.mostrarventas, 0) = 1
+        AND (P.codigobarra LIKE '%' + @PRODUCTO + '%' 
+            OR P.codigoproducto LIKE '%' + @PRODUCTO + '%' 
+            OR P.nombre LIKE '%' + @PRODUCTO + '%')
+    )
+
+    SELECT a.*
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY CHARINDEX(@PRODUCTO, us.nombre) ASC, LEN(us.nombre)) AS FILA,
+            us.idprecioproducto,
+            us.idproducto,
+            us.codigoproducto,
+            us.nombre,
+            us.idtipoproducto AS tipoproducto,
+            us.nombreabreviado,
+            l.descripcion AS laboratorio,
+            pp.descripcion AS presentacion,
+            us.precio,
+            us.cod_intuictive,
+            ISNULL(i.incentivo, 0) AS incentivo,
+            us.precioxfraccion,
+            s.stock,
+            us.multiplo
+        FROM CTEtest us
+        LEFT JOIN Almacen.Laboratorio l WITH (NOLOCK) ON l.idlaboratorio = us.idlaboratorio
+        LEFT JOIN Almacen.ProductoPresentacion pp WITH (NOLOCK) ON pp.idpresentacion = us.idpresentacion
+        LEFT JOIN (
+            SELECT idproducto, MIN(stock) AS stock
+            FROM (
+                SELECT asl.idproducto, MAX(asl.candisponible) / cpp.cantidad AS stock
+                FROM Comercial.PromocionPackDetalle cpp WITH (NOLOCK)
+                LEFT JOIN Almacen.StockLoteProducto asl WITH (NOLOCK) ON cpp.idproducto = asl.idproducto
+                LEFT JOIN Almacen.AlmacenSucursal ALS WITH (NOLOCK) ON ALS.idalmacensucursal = asl.idalmacensucursal
+                GROUP BY asl.idproducto, cpp.cantidad
+            ) StockInfo
+            GROUP BY idproducto
+        ) s ON us.idproducto = s.idproducto
+        LEFT JOIN (
+            SELECT idproducto, COALESCE(incentivo, 0) AS incentivo
+            FROM Comercial.Incentivo WITH (NOLOCK)
+            WHERE estado = 'HABILITADO'
+            AND idsucursal = @SUCURSAL
+            AND GETDATE() BETWEEN fechainicio AND fechafin
+        ) i ON us.idproducto = i.idproducto
+    ) a
+    ORDER BY CHARINDEX(@PRODUCTO, a.nombre) ASC, LEN(a.nombre) ASC;
+END
+
+
+
+
+
+create FUNCTION [Comercial].[fn_getincentivo_actual_producto_v3]
+(
+    @idproducto INT,
+    @idsucursal INT,
+    @idtipopedido INT,
+    @idcanalventa VARCHAR(100)
+)
+RETURNS DECIMAL(18,4)
+BEGIN
+    DECLARE @incentivo DECIMAL(18,4) = 0;
+    DECLARE @tipo VARCHAR(2) = (SELECT TOP(1) idtipoproducto FROM Almacen.Producto WITH(NOLOCK) WHERE idproducto = @idproducto);
+    DECLARE @idempresa INT = (SELECT idempresa FROM SUCURSAL WITH(NOLOCK) WHERE suc_codigo = @idsucursal);
+    
+    -- Unificamos la consulta de incentivo
+    SELECT TOP(1) 
+        @incentivo = COALESCE(incentivo, 0)
+    FROM Comercial.incentivo WITH(NOLOCK)
+    WHERE idproducto = @idproducto
+      AND idsucursal = @idsucursal
+      AND estado = 'HABILITADO'
+      AND (@tipo = 'PK' OR (COALESCE(fechainicio, DATEADD(DAY, -1, GETDATE())) <= GETDATE() 
+                            AND COALESCE(fechafin, DATEADD(DAY, 1, GETDATE())) >= GETDATE()))
+    ORDER BY id DESC;
+
+    -- Determinación del incentivo final basado en idempresa, idtipopedido y canalventa
+    RETURN CASE 
+        WHEN @idempresa = 1002 AND @idtipopedido = 2 AND @idcanalventa = 'MS' THEN COALESCE(@incentivo, 0)
+        WHEN @idempresa = 1002 THEN 0
+        ELSE COALESCE(@incentivo, 0)
+    END;
+END

@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <sectionGroup name="applicationSettings" type="System.Configuration.ApplicationSettingsGroup, System">
+      <section name="DevExpress.LookAndFeel.Design.AppSettings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+    </sectionGroup>
+  </configSections>
+  <applicationSettings>
+    <DevExpress.LookAndFeel.Design.AppSettings>
+      <setting name="DefaultAppSkin" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="DefaultPalette" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="TouchUI" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="CompactUI" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="TouchScaleFactor" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="DirectX" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="RegisterUserSkins" serializeAs="String">
+        <value>True</value>
+      </setting>
+      <setting name="RegisterBonusSkins" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="FontBehavior" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="DefaultAppFont" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="DPIAwarenessMode" serializeAs="String">
+        <value></value>
+      </setting>
+      <setting name="CustomPaletteCollection" serializeAs="Xml">
+        <value />
+      </setting>
+    </DevExpress.LookAndFeel.Design.AppSettings>
+  </applicationSettings>
+  <connectionStrings>
+    <add name="localhost_LAB_QF_Connection" connectionString="XpoProvider=MSSqlServer;data source=108.181.159.23;user id=;password=;initial catalog=LAB_QF;Persist Security Info=true" />
+    <add name="localhost_LAB_QF_Connection 1" connectionString="XpoProvider=MSSqlServer;data source=108.181.159.23;user id=sa;password=D52(zuVYf0lO4;initial catalog=LAB_QF;Persist Security Info=true" />
+    <add name="localhost_LAB_QF_conexion" connectionString="XpoProvider=MSSqlServer;data source=.;user id=sa;password=123456;initial catalog=LAB_QF;Persist Security Info=true" />
+    <add name="JsonConnection" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Pedido/ServicePedido.svc/reportefichapesaje/37000514/2" providerName="JsonSourceProvider" />
+    <add name="JsonConnection 1" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Pedido/ServicePedido.svc/reportefichapesaje/37000514/2;query:idpedido=37000514;query:numitemformula=1" providerName="JsonSourceProvider" />
+    <add name="JsonConnection_reporte_fichapesaje" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Pedido/ServicePedido.svc/reportefichapesaje/37000514/1" providerName="JsonSourceProvider" />
+    <add name="JsonConnectionFacturaTransferecia" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Stock/ServiceStock.svc/facturatransferencia/stock_reporte_factura/1050/25-08-2021/T" providerName="JsonSourceProvider" />
+    <add name="ReporteFacturaEntradaSalida" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Stock/ServiceStock.svc/facturatransferencia/stock_reporte_factura/4878/28-12-2021/E" providerName="JsonSourceProvider" />
+    <add name="JsonConnectionFormulaOficinalFicha" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Stock/ServiceStock.svc/formulaoficinal/formulaoficinal_reporteficha/37001488/1" providerName="JsonSourceProvider" />
+    <add name="JsonConnectionReporteFichaPesaje1" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Pedido/ServicePedido.svc/reportefichapesaje/37001539/1" providerName="JsonSourceProvider" />
+    <add name="produccion_reportefichapesaje" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Stock/ServiceStock.svc/formulaoficinal/formulaoficinal_reporteficha/37032786/2" providerName="JsonSourceProvider" />
+    <add name="JsonConnection-reporte-fichapesaje-03072024" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Pedido/ServicePedido.svc/reportefichapesaje/37032847/1" providerName="JsonSourceProvider" />
+    <add name="JsonConnection_formulaoficinal_ficha" connectionString="Uri=http://localhost:62514/Laboratorio/Manipulacion/Stock/ServiceStock.svc/formulaoficinal/formulaoficinal_reporteficha/37032876/1" providerName="JsonSourceProvider" />
+  </connectionStrings>
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.7.2" />
+  </startup>
+  <appSettings>
+    <!-- VERSIÓN-->
+    <add key="version" value="1.1.0.96" />
+    <!--WS PRODUCCION-->
+	<add key="urlwssige" value="http://webserviceqflab.qf.com.pe/" />
+	<add key="urlws" value="http://webserviceqflab.qf.com.pe/" />
+    <add key="ws_preparadosqf" value="http://webserviceqflab.qf.com.pe/" />
+
+	<!--WS PRODUCCION PRUEBAS-->
+	  <!--<add key="urlwssige" value="http://apidemoqfpharma.qf.com.pe/" />
+	<add key="urlws" value="http://apidemoqfpharma.qf.com.pe/" />-->
+
+	<!--WS PRUEBAS LOCAL-->
+	<!--<add key="urlwssige" value="http://localhost:62514/" />
+	<add key="urlws" value="http://localhost:62514/" />-->
+	  
+	<!--API PRUEBAS LOCAL-->
+	<!--<add key="api_ventasqf" value="https://localhost:7257/" />-->
+	<add key="api_ventasqf" value="http://apiqfventas.qf.com.pe/" />
+	  
+	<!--WS PRUEBAS PANDAFILE-->
+    <add key="urlwsp" value="http://apipandaservice.qf.com.pe/" />
+    <!--API RUC SUNAT-->
+    <!--<add key="apiQF" value="http://apiruc.qf.com.pe/" />-->
+	<!--<add key="apiQF" value="http://localhost:44332/" />-->
+	  
+	<!--API LOGISTICA PRODUCCION-->
+    <add key="api_logisticaqf" value="http://apiqflogistica.qf.com.pe/" />
+	<add key="urlStarsoft" value="http://apiqfconta.qf.com.pe/" />
+	  
+    <!--API SIGE-->
+    <add key="urlapi" value="https://localhost:7257/" />
+    <add key="idempresa" value="1000" />
+    <add key="ClientSettingsProvider.ServiceUri" value="" />
+	  
+    <!--TIPO VERSION-->
+    <add key="istouch" value="false" />
+    <add key="islaboratorio" value="false" />
+    <add key="isclave" value="false" />
+  </appSettings>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider" type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider" type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
+  <runtime>
+    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+      <dependentAssembly>
+        <assemblyIdentity name="System.Buffers" publicKeyToken="cc7b13ffcd2ddd51" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.0.5.0" newVersion="4.0.5.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Runtime.CompilerServices.Unsafe" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-6.0.3.0" newVersion="6.0.3.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Memory" publicKeyToken="cc7b13ffcd2ddd51" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.0.5.0" newVersion="4.0.5.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Text.Encodings.Web" publicKeyToken="cc7b13ffcd2ddd51" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-7.0.0.0" newVersion="7.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Numerics.Vectors" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.1.6.0" newVersion="4.1.6.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-13.0.0.0" newVersion="13.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="System.Threading.Tasks.Extensions" publicKeyToken="cc7b13ffcd2ddd51" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-4.2.4.0" newVersion="4.2.4.0" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+</configuration>
